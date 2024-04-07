@@ -2,8 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-#define MAX_N 52
-#define MAX_P 31
+#define MAX_N 55
+#define MAX_P 35
 using namespace std;
 
 struct Santa
@@ -38,8 +38,6 @@ bool inMAP(pair<int, int> a){
     int c = a.second;
     return r>=1 && r<=N && c>=1 && c<=N;
 }
-int deerDx[8]={1,1,1,0,0,-1,-1,-1};
-int deerDy[8]={1,0,-1,1,-1,1,0,-1};
 int santaDx[4]={-1,0,1,0};
 int santaDy[4]={0,1,0,-1};
 
@@ -52,6 +50,13 @@ void init()
             MAP[i][j] = 0;
         }
     }
+    for (int i = 0; i < MAX_P; i++)
+    {
+        santa[i].pos = make_pair(0, 0);
+        santa[i].score = 0;
+        santa[i].stun = -1;
+        santa[i].life = false;
+    }
     cin >> N >> M >> P >> C >> D;
     cin >> deer.first >> deer.second;
     MAP[deer.first][deer.second] = -1;
@@ -61,9 +66,7 @@ void init()
         cin >> p;
         cin >> santa[p].pos.first >> santa[p].pos.second;
         MAP[santa[p].pos.first][santa[p].pos.second] = p;
-        santa[p].score = 0;
         santa[p].life = true;
-        santa[p].stun = -1;
     }
 }
 void view(int k){
@@ -87,6 +90,7 @@ void solve(int K)
 {
     int move_to_r;
     int move_to_c;
+    // view(0);
     for(int k=1; k<=K; k++){
         vector<pair<int, int>> dist;
         for (int i = 1; i <= P; i++)
@@ -97,19 +101,11 @@ void solve(int K)
         if(dist.size()==0) break;
 
         sort(dist.begin(), dist.end(), compare);
-        // for (auto i : dist) 
-        // {
-        //     cout<<i.first<<" "<<i.second<<endl;
-        // }
 
         int targetSantaIdx = dist[0].second;
         Santa *targetSanta = &santa[targetSantaIdx];
 
         //deer move
-
-
-
-
         move_to_r=0;
         move_to_c=0;
         if (deer.first < targetSanta->pos.first){
