@@ -141,7 +141,6 @@ void solve(int K)
                 // check 1. 경계
                 if(!inMAP(targetSanta->pos)){
                     targetSanta->life = false;
-                    MAP[targetSanta->pos.first][targetSanta->pos.second]=0;
                     break;
                 }
                 // nextSanta out from map
@@ -224,7 +223,6 @@ void solve(int K)
                     // check 1. 경계
                     if(!inMAP(targetSanta->pos)){
                         targetSanta->life = false;
-                        MAP[targetSanta->pos.first][targetSanta->pos.second]=0;
                         break;
                     }
                     // nextSanta out from map
