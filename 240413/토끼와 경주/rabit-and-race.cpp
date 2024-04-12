@@ -100,22 +100,33 @@ void play(){
         int y= rabbit.y;
         vector<Rabbit> nextRabbit;
         for(int i=0; i<4; i++){
-            int nx=x;
-            int ny=y;
-            int dx_=dx[i];
-            int dy_=dy[i];
-            for(int j=0; j<d%(2*N-2); j++){
-                nx+=dx_;
-                if(!(nx>=1&&nx<=N)){
-                    dx_*=-1;
-                    nx+=2*dx_;
+            int nx, ny;
+            int dist_x = d%(2*N-2);
+            int dist_y = d%(2*M-2);
+            nx = x+dist_x*dx[i];
+            ny = y+dist_y*dy[i];
+            // 상하 처리
+            if(nx>N){
+                nx = 2*N - nx;
+                if(nx<1){
+                    nx=2-nx;
+                }
+            }else if(nx<1){
+                nx=2-nx;
+                if(nx>N){
+                    nx=2*N-nx;
                 }
             }
-            for(int j=0; j<d%(2*M-2); j++){
-                ny+=dy_;
-                if(!(ny>=1&&ny<=M)){
-                    dy_*=-1;
-                    ny+=2*dy_;
+            // 좌우 처리
+            if(ny>M){
+                ny = 2*M - ny;
+                if(ny<1){
+                    ny=2-ny;
+                }
+            }else if(ny<1){
+                ny=2-ny;
+                if(ny>M){
+                    ny=2*M-ny;
                 }
             }
             nextRabbit.push_back({jump_cnt, nx, ny, pid});
@@ -170,5 +181,6 @@ int main(){
     cin.tie(0); cout.tie(0);ios::sync_with_stdio(0);
     //freopen("test_input.txt", "r", stdin);
     solve();
+    cout<<endl;
     return 0;
 }
