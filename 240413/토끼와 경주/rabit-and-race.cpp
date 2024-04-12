@@ -73,7 +73,8 @@ bool compare_vec(const Rabbit a, const Rabbit b){
 priority_queue<Rabbit, vector<Rabbit>, compare> pq;
 unordered_map<int, int> dist_info;
 unordered_map<int, int> score_info;
-int Q, N, M, P, K, S, L, cmd, total_score;
+int Q, N, M, P, K, S, L, cmd;
+unsigned long long total_score;
 
 // pid - dist unordered_map으로 초기화.
 void init(){
@@ -155,7 +156,7 @@ void changeL(){
     dist_info[pid]*=L;   
 }
 void getScore(){
-    int max=0;
+    unsigned long long max=0;
     for(auto i : score_info){
         if(max<i.second){
             max = i.second;
