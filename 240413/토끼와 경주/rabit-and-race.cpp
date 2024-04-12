@@ -2,7 +2,7 @@
 #include<algorithm>
 #include<vector>
 #include<queue>
-#include<map>
+#include<unordered_map>
 #define left 0
 #define up 1
 #define right 2
@@ -56,29 +56,40 @@ struct compare2{
     }
 };
 priority_queue<Rabbit, vector<Rabbit>, compare> pq;
-map<int, int> dist_info;
-map<int, int> score_info;
 int Q, N, M, P, K, S, L, cmd, total_score;
-
-// pid - dist map으로 초기화.
+unordered_map<int, int> pid_convert;
+vector<int> dist_vec;
+vector<int> score_vec;
+bool compare_dist(const pair<int,int> a, const pair<int,int> b){
+    return a.first < b.first;
+};
+// pid - dist unordered_map으로 초기화.
 void init(){
-    dist_info.clear();
-    score_info.clear();
+    int pid_cnt=0;
+    vector<pair<int, int>> dist_tmp;
     cin>>N>>M>>P;  
     for(int i=0; i<P; i++) {
         int pid, d; cin>>pid>>d;
-        dist_info[pid]=d;
-        pq.push({0, 1, 1, pid});
+        dist_tmp.push_back({pid,d});
+        score_vec.push_back(0);
+        //pq.push({0, 1, 1, pid});
+    }
+
+    sort(dist_tmp.begin(), dist_tmp.end(), compare_dist);
+    for(auto r : dist_tmp){
+        dist_vec.push_back(r.second);
+        pid_convert[r.first]=pid_cnt;
+        pq.push({0, 1, 1, pid_cnt++});
     }
     total_score=0;
 }
 void play(){
-    map<int, Rabbit> hist;
+    unordered_map<int, Rabbit> hist;
     cin>>K>>S;
     for(int k=0; k<K; k++){
         auto rabbit = pq.top();
         pq.pop();
-        int d = dist_info[rabbit.pid];
+        int d = dist_vec[rabbit.pid];
         int pid = rabbit.pid;
         int jump_cnt=rabbit.jump_cnt+1;
         int x= rabbit.x;
@@ -109,14 +120,14 @@ void play(){
         pq.push(nRabbit);
 
         total_score+=nRabbit.x+nRabbit.y;
-        score_info[rabbit.pid]-=nRabbit.x+nRabbit.y;
+        score_vec[rabbit.pid]-=nRabbit.x+nRabbit.y;
     }
     priority_queue<Rabbit, vector<Rabbit>, compare2> pq3;
     for(auto r :hist){
         pq3.push(r.second);
     }
     int best_pid = pq3.top().pid;
-    score_info[best_pid]+=S;
+    score_vec[best_pid]+=S;
     while(!pq3.empty()) pq3.pop();
 
     
@@ -124,19 +135,20 @@ void play(){
 // pq의 우선 순위에 L은 포함되지 않아서, 단순하기 변경만 하면 됨.
 void changeL(){
     int pid; cin>>pid>>L;
-    dist_info[pid]*=L;   
+    dist_vec[pid_convert[pid]]*=L;   
 }
 void getScore(){
     int max=0;
-    for(auto i : score_info){
-        if(max<i.second+total_score){
-            max = i.second;
+    for(auto score : score_vec){
+        if(max<score){
+            max = score;
         }
         // cout<<i.first<<": "<<i.second+total_score<<endl;
     }
     cout<<max+total_score;
     
     while(!pq.empty()) pq.pop();
+    dist_vec.clear();
 }
 void solve(){
     cin>>Q;
