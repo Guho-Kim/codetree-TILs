@@ -104,13 +104,15 @@ void play(){
             int ny=y;
             int dx_=dx[i];
             int dy_=dy[i];
-            for(int j=0; j<d; j++){
+            for(int j=0; j<d%(2*N-2); j++){
                 nx+=dx_;
-                ny+=dy_;
                 if(!(nx>=1&&nx<=N)){
                     dx_*=-1;
                     nx+=2*dx_;
                 }
+            }
+            for(int j=0; j<d%(2*M-2); j++){
+                ny+=dy_;
                 if(!(ny>=1&&ny<=M)){
                     dy_*=-1;
                     ny+=2*dy_;
