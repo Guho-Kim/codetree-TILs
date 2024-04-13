@@ -11,6 +11,7 @@ int dy[4] = {0,0,-1,1};
 using namespace std;
 #define MAX_N 11
 int N, M, K, goal_x, goal_y, sum_of_movement;
+int start_x, start_y, square_size;
 int Maze[MAX_N][MAX_N];
 
 struct Runner{
@@ -49,98 +50,71 @@ void view(){
 bool inMaze(int x, int y){
     return x>=1&&x<=N&&y>=1&&y<=N;
 }
-void rotateMaze(){
-    //start 위치 구하기.
-    // runner idx에 매칭되는 dist 저장 필요. row랑 col 합산이 아니라 따로 따로 길이만 있으면 됨
-    vector<pair<int, pair<int,int>>> square_dist;
-    int cnt=0;
-    for(auto runner : runners){
-        int dist = max(abs(goal_x-runner.x), abs(goal_y-runner.y));
-        int dir;
-        //4분류 하면 안됨................. 훨씬 많음.
-        if(runner.x<=goal_x && runner.y<=goal_y) dir =0;
-        else if(runner.x<=goal_x && runner.y>=goal_y) dir =1;
-        else if(runner.x>=goal_x && runner.y<=goal_y) dir =2;
-        else if(runner.x>=goal_x && runner.y>=goal_y) dir =3;
-
-        square_dist.push_back({dist, {dir, cnt++}});
-    }
-    sort(square_dist.begin(), square_dist.end());
-    int min_dist;
-    int min_dir;
-    for(int i=0; i<square_dist.size(); i++){
-        int runner_idx = square_dist[i].second.second;
-        if(runners[runner_idx].live){
-            min_dist = square_dist[i].first;
-            min_dir = square_dist[i].second.first;
-            break;
+void makeSquare(){
+    for(int len=2; len<=N; len++){
+        for(int x1=1; x1< N-len+2; x1++){
+            for(int y1=1; y1<N-len+2; y1++){
+                int x2=x1+len-1, y2=y1+len-1;
+                if(!(x1<=goal_x && goal_x<=x2&&y1<=goal_y&&goal_y<=y2)) continue;
+                for(auto runner : runners){
+                    if(!runner.live) continue;
+                    if(x1<=runner.x&&runner.x<=x2&&y1<=runner.y&&runner.y<=y2){
+                        start_x=x1;
+                        start_y=y1;
+                        square_size=len;
+                        return;
+                    }
+                }
+            }
         }
     }
+}
+void rotateMaze(){
+    makeSquare();
 
-    // 가능한 최소 사각형 먼저 구하기. 그걸 r값 작은 -> 같으면 c값 작은 걸로 우선순위로 정렬한 뒤에 선택
-    int start_x, start_y;
-    if(min_dir==0){
-        start_x=goal_x-min_dist;
-        start_y=goal_y-min_dist;
-    }else if(min_dir==1){
-        start_x=goal_x-min_dist;
-        start_y=goal_y;
-    }else if(min_dir==2){
-        start_x=goal_x;
-        start_y=goal_y-min_dist;
-    }else if(min_dir==3){
-        start_x=goal_x;
-        start_y=goal_y;
-    }
-    if(start_x<1){
-        start_x=1;
-    }
-    if(start_y<1){
-        start_y=1;
-    }
-    if(start_x+min_dist>N){
-        int tmp = start_x+min_dist -N;
-        start_x-=tmp;
-    }
-    if(start_y+min_dist>N){
-        int tmp = start_y+min_dist -N;
-        start_y-=tmp;
-    }
-    
-
-
-    //Maze move
-    int tmpMap[MAX_N][MAX_N];
+    int tmpMaze[MAX_N][MAX_N];
     for(int i=1; i<=N; i++){
         for(int j=1; j<=N; j++){
-            tmpMap[i][j]=Maze[i][j];
+            tmpMaze[i][j]=Maze[i][j];
         }
     }
 
-    int size = min_dist+1;
+    int ox, oy, nx, ny;
     //내구도 깎아야함.
-    for(int i=0; i<size; i++){
-        for(int j=0; j<size; j++){
-            int tmp = tmpMap[start_x+size-1-j][start_y+i];
-            if(tmp>0) tmp--;
-            Maze[start_x+i][start_y+j] = tmp;
+    for(int i=start_x; i<start_x+square_size; i++){
+        for(int j=start_y; j<start_y+square_size; j++){
+            ox = i-start_x, oy=j-start_y;
+            nx=oy;
+            ny=square_size-1-ox;
+            nx+=start_x;
+            ny+=start_y;
+            Maze[nx][ny]=tmpMaze[i][j];
+            if(Maze[nx][ny]){
+                Maze[nx][ny]--;
+            }
         }
     }
     // runner, exit의 위치도 움직여야함.
     //runner & exit move
-    int j_ = start_x+size-1-goal_x;
-    int i_ = goal_y-start_y;
-    goal_x = start_x+i_;
-    goal_y=start_y+j_;
-
-    for(int i=0; i<square_dist.size(); i++){
-        int runner_idx = square_dist[i].second.second;
-        if(runners[runner_idx].live && min_dist == square_dist[i].first && min_dir==square_dist[i].second.first){
-            j_ = start_x+size-1-runners[runner_idx].x;
-            i_ = runners[runner_idx].y-start_y;
-            runners[runner_idx].x = start_x+i_;
-            runners[runner_idx].y=start_y+j_;
-
+    ox = goal_x-start_x;
+    oy = goal_y-start_y;
+    nx = oy;
+    ny = square_size -1 -ox;
+    nx+=start_x;
+    ny+=start_y;
+    goal_x = nx;
+    goal_y = ny;
+    for(auto & runner : runners){
+        if(!runner.live) continue;
+        if(start_x<=runner.x&&runner.x<start_x+square_size &&start_y<=runner.y&&runner.y<start_y+square_size){
+            ox = runner.x-start_x;
+            oy = runner.y-start_y;
+            nx = oy;
+            ny = square_size -1 -ox;
+            nx+=start_x;
+            ny+=start_y;
+            runner.x = nx;
+            runner.y = ny;
         }
     }
 }
