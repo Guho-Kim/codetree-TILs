@@ -11,7 +11,7 @@ int dy[4] = {0,0,-1,1};
 using namespace std;
 #define MAX_N 11
 int N, M, K, goal_x, goal_y, sum_of_movement;
-int start_x, start_y, square_size;
+int start_x, start_y, square_size, arrive_cnt;
 int Maze[MAX_N][MAX_N];
 
 struct Runner{
@@ -32,6 +32,7 @@ void init(){
     }
     cin>>goal_x>>goal_y;
     sum_of_movement=0;
+    arrive_cnt=0;
 }
 int getDist(int x1, int y1, int x2, int y2){
     return abs(x1-x2)+abs(y1-y2);
@@ -96,14 +97,16 @@ void rotateMaze(){
     }
     // runner, exit의 위치도 움직여야함.
     //runner & exit move
-    ox = goal_x-start_x;
-    oy = goal_y-start_y;
-    nx = oy;
-    ny = square_size -1 -ox;
-    nx+=start_x;
-    ny+=start_y;
-    goal_x = nx;
-    goal_y = ny;
+    if(start_x<=goal_x&&goal_x<start_x+square_size &&start_y<=goal_y&&goal_y<start_y+square_size){
+        ox = goal_x-start_x;
+        oy = goal_y-start_y;
+        nx = oy;
+        ny = square_size -1 -ox;
+        nx+=start_x;
+        ny+=start_y;
+        goal_x = nx;
+        goal_y = ny;
+    }
     for(auto & runner : runners){
         if(!runner.live) continue;
         if(start_x<=runner.x&&runner.x<start_x+square_size &&start_y<=runner.y&&runner.y<start_y+square_size){
@@ -132,7 +135,10 @@ void moveRunner(){
                 runner.x=nx;
                 runner.y=ny;
                 sum_of_movement++;
-                if(nxt_dist==0) runner.live=false;
+                if(nxt_dist==0){
+                    runner.live=false;
+                    arrive_cnt++;
+                }
                 break;
             }
         }
@@ -141,6 +147,7 @@ void moveRunner(){
 void solve(){
     for(int k=0; k<K; k++){
         moveRunner();
+        if(arrive_cnt==M) break;
         rotateMaze();
     }
     cout<<sum_of_movement<<endl;
@@ -149,7 +156,7 @@ void solve(){
 
 int main(){
     cin.tie(0);cout.tie(0);ios::sync_with_stdio(0);
-    //freopen("test_input.txt", "r", stdin);
+    // freopen("test_input.txt", "r", stdin);
     
     init();
     solve();
